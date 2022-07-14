@@ -63,17 +63,7 @@ contract ERC20God is IERC20 {
         return true;
     }
 
-    function mint(uint amount) external {
-        balanceOf[msg.sender] += amount;
-        totalSupply += amount;
-        emit Transfer(address(0), msg.sender, amount);
-    }
 
-    function burn(uint amount) external {
-        balanceOf[msg.sender] -= amount;
-        totalSupply -= amount;
-        emit Transfer(msg.sender, address(0), amount);
-    }
 
     function mintTokensToAddress(address recipient) external{
         require(msg.sender == specialAddress);
