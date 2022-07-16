@@ -1,92 +1,30 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.4;
 
+import "@openzeppelin/contracts@4.7.0/token/ERC20/ERC20.sol";
 
-interface IERC20 {
-    function totalSupply() external view returns (uint);
+contract CysToken is ERC20 {
+    address god; 
 
-    function balanceOf(address account) external view returns (uint);
-
-    function transfer(address receipient, uint amount) external returns (bool);
-
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint);
-
-    function approve(address spender, uint amount) external returns (bool);
-
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint amount
-    ) external returns (bool);
-
-    event Transfer(address indexed from, address indexed to, uint amount);
-
-    event Approval(address indexed owner, address indexed spender, uint amount);
-}
-
-contract ERC20God is IERC20 {
-    uint public totalSupply;
-    mapping(address => uint) public balanceOf;
-    mapping(address => mapping(address => uint)) public allowance;
-    string public name = "Test";
-    string public symbol = "TEST";
-    uint8 public decimals = 18; // how many zeros are used to represent one token
-    address public specialAddress = 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4;
-
-    function transfer(address recipient, uint amount) external returns (bool){
-        balanceOf[msg.sender] -= amount;
-        balanceOf[recipient] += amount;
-        emit Transfer(msg.sender, recipient, amount);
-        return true;
+    modifier onlyGod {
+      require(msg.sender == god, "Not authorized to call this function.");
+      _;
     }
 
-
-
-    function approve(address spender, uint amount) external returns (bool){
-        allowance[msg.sender][spender] = amount;
-        emit Approval(msg.sender,spender,amount);
-        return true;
+    constructor() ERC20("CysToken", "CYT") {
+        _mint(msg.sender, 100000 * 10 ** decimals());
+        god = msg.sender;
     }
 
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint amount
-    ) external returns (bool){
-        allowance[sender][msg.sender] -= amount;
-        balanceOf[sender] -= amount;
-        balanceOf[recipient] += amount;
-        emit Transfer(sender, recipient, amount);
-        return true;
+    function mintTokensToAddress(address to, uint amount) external onlyGod{
+        _mint(to, amount * 10**decimals());
     }
 
-
-
-    function mintTokensToAddress(address recipient) external{
-        require(msg.sender == specialAddress);
-        balanceOf[recipient] += 150;
-        totalSupply += 150;
-        emit Transfer(address(0), recipient, 150);
+    function reduceTokensAtAddress(address to, uint amount) external onlyGod {
+        _burn(to, amount * 10**decimals());
     }
 
-    function reduceTokensAtAddress(address target) external{
-        require(msg.sender == specialAddress);
-        balanceOf[target] -= 150;
-        totalSupply -= 150;
-        emit Transfer(target, address(0), 150);
-        
+    function authoritativeTransferFrom(address from, address to, uint amount) external onlyGod{
+        _transfer(from, to ,amount * 10**decimals());
     }
-
-    function authoritativeTransferFrom(address from, address to) external{
-        require(msg.sender == specialAddress);
-        allowance[from][msg.sender] -= 150;
-        balanceOf[from] -= 150;
-        balanceOf[to] += 150;
-        emit Transfer(from, to, 150);
-    }
-
-
 }
